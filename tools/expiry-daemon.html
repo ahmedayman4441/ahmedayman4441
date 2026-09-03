@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expiry Daemon - Dev Tool</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:18px;background:#f8fafc;color:#0f172a}
+    h1{font-size:18px;margin-bottom:6px}
+    .row{display:flex;gap:8px;align-items:center}
+    button{padding:6px 10px;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{border:1px solid #e2e8f0;padding:8px;text-align:right;font-size:13px}
+    .log{height:200px;overflow:auto;background:#0b1220;color:#e6f0ff;padding:8px;border-radius:6px;margin-top:12px;font-family:monospace;font-size:12px}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#fde68a;color:#92400e;font-weight:700;font-size:12px}
+  </style>
+</head>
+<body>
+  <h1>أداة المراقبة الآلية لتواريخ انتهاء الصلاحية (بيئة تطوير)</h1>
+  <p>هذه الأداة تعمل بشكل مستقل ولا تعدل أي ملف من التطبيق. تُجري فحوصات متكررة على <strong>localStorage</strong> تحت المفتاح <code>sales_app_products</code> وتطبق الحظر/الإعادة تلقائياً.</p>
+
+  <div class="row" style="margin-top:8px">
+    <button id="run-scan">تشغيل الفحص الآن</button>
+    <button id="start-stop">بدء الخدمة (تشغيل)</button>
+    <label style="margin-right:8px">فاصل الفحص (ثواني): <input id="interval-sec" type="number" value="30" style="width:66px;padding:4px;margin-right:6px"/></label>
+    <button id="refresh-view">تحديث العرض</button>
+  </div>
+
+  <div style="margin-top:12px">
+    <span class="badge">تعليمات: افتح هذه الصفحة أثناء تشغيل واجهة التطبيق</span>
+  </div>
+
+  <table id="products-table">
+    <thead>
+      <tr>
+        <th>كود</th>
+        <th>الاسم</th>
+        <th>تاريخ الانتهاء</th>
+        <th>الكمية</th>
+        <th>الحالة</th>
+        <th>إجراء</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="log" id="log"></div>
+
+  <script src="./tools/expiry-daemon.js"></script>
+</body>
+</html>

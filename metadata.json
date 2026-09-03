@@ -1,0 +1,6 @@
+{
+  "name": "برنامج المبيعات الذكي وتصدير الإكسيل",
+  "description": "برنامج مبيعات متكامل لإدارة المنتجات، الأرباح، وفواتير المبيعات، مع ميزة التصدير والاستيراد المباشر لشيتات إكسيل (Excel) مهيأة تماماً للعمل على الموبايل.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
