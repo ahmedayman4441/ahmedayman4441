@@ -225,6 +225,7 @@ export default function App() {
   const [hasLoadedSharedState, setHasLoadedSharedState] = useState(false);
   const lastLocalChangeRef = useRef<string | null>(null);
   const lastAppliedServerUpdateRef = useRef<string | null>(null);
+  const hasPendingLocalSyncRef = useRef(false);
 
   const applySharedPayload = (remoteData: Partial<SharedAppPayload> | null) => {
     if (!remoteData) return false;
@@ -251,6 +252,7 @@ export default function App() {
 
   const markLocalChange = () => {
     lastLocalChangeRef.current = new Date().toISOString();
+    hasPendingLocalSyncRef.current = true;
   };
 
   useEffect(() => {
@@ -327,6 +329,7 @@ export default function App() {
           if (serverPayload?.updatedAt) {
             lastAppliedServerUpdateRef.current = serverPayload.updatedAt;
           }
+          hasPendingLocalSyncRef.current = false;
         }
       } catch (error) {
         console.warn('Failed to sync data to shared server', error);
@@ -343,6 +346,8 @@ export default function App() {
 
     const pollFromServer = async () => {
       try {
+        if (hasPendingLocalSyncRef.current) return;
+
         const response = await fetch('/api/data');
         if (!response.ok) return;
 
@@ -478,6 +483,7 @@ export default function App() {
 
   // Delete a backup
   const deleteBackup = (backupId: string) => {
+    markLocalChange();
     const updatedBackups = backups.filter(b => b.id !== backupId);
     setBackups(updatedBackups);
     localStorage.setItem('sales_app_backups', JSON.stringify(updatedBackups));
