@@ -227,14 +227,15 @@ export default function App() {
   const lastAppliedServerUpdateRef = useRef<string | null>(null);
   const hasPendingLocalSyncRef = useRef(false);
   const syncQueueRef = useRef(Promise.resolve());
+  const latestSyncVersionRef = useRef(0);
 
   const applySharedPayload = (remoteData: Partial<SharedAppPayload> | null) => {
     if (!remoteData) return false;
 
     const normalizedData: SharedAppPayload = {
-      products: Array.isArray(remoteData.products) && remoteData.products.length > 0 ? remoteData.products : defaultProducts,
-      sales: Array.isArray(remoteData.sales) && remoteData.sales.length > 0 ? remoteData.sales : getDefaultSales(),
-      customers: Array.isArray(remoteData.customers) && remoteData.customers.length > 0 ? remoteData.customers : getDefaultCustomers(),
+      products: Array.isArray(remoteData.products) ? remoteData.products : defaultProducts,
+      sales: Array.isArray(remoteData.sales) ? remoteData.sales : getDefaultSales(),
+      customers: Array.isArray(remoteData.customers) ? remoteData.customers : getDefaultCustomers(),
       refunds: Array.isArray(remoteData.refunds) ? remoteData.refunds : [],
       companySettings: remoteData.companySettings ?? makeDefaultCompanySettings(),
       backups: Array.isArray(remoteData.backups) ? remoteData.backups : [],
@@ -330,7 +331,6 @@ export default function App() {
           if (serverPayload?.updatedAt) {
             lastAppliedServerUpdateRef.current = serverPayload.updatedAt;
           }
-          hasPendingLocalSyncRef.current = false;
         }
       } catch (error) {
         console.warn('Failed to sync data to shared server', error);
@@ -339,8 +339,16 @@ export default function App() {
       }
     };
 
+    const syncVersion = latestSyncVersionRef.current + 1;
+    latestSyncVersionRef.current = syncVersion;
+    hasPendingLocalSyncRef.current = true;
     syncQueueRef.current = syncQueueRef.current
       .then(syncToServer)
+      .then(() => {
+        if (latestSyncVersionRef.current === syncVersion) {
+          hasPendingLocalSyncRef.current = false;
+        }
+      })
       .catch(error => console.warn('Queued data sync failed', error));
   }, [hasLoadedSharedState, products, sales, customers, refunds, companySettings, backups]);
 
