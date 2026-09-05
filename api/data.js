@@ -18,8 +18,13 @@ const redisCommand = async (command) => {
   const { url, token } = getRedisConfig();
   if (!url || !token) return null;
 
-  const response = await fetch(`${url}/${command.map(encodeURIComponent).join('/')}`, {
-    headers: { Authorization: `Bearer ${token}` }
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(command)
   });
   if (!response.ok) throw new Error(`Storage request failed with ${response.status}`);
 
@@ -31,7 +36,8 @@ export default async function handler(request, response) {
   try {
     if (request.method === 'GET') {
       const stored = await redisCommand(['get', DATA_KEY]);
-      return response.status(200).json(stored ? JSON.parse(stored) : await readBundledData());
+      const data = stored ? JSON.parse(stored) : await readBundledData();
+      return response.status(200).json({ ...data, storageConfigured: Boolean(getRedisConfig().url && getRedisConfig().token) });
     }
 
     if (request.method === 'POST') {
@@ -42,7 +48,8 @@ export default async function handler(request, response) {
         });
       }
 
-      const payload = { ...request.body, updatedAt: new Date().toISOString() };
+      const requestBody = typeof request.body === 'string' ? JSON.parse(request.body) : request.body;
+      const payload = { ...requestBody, updatedAt: new Date().toISOString() };
       await redisCommand(['set', DATA_KEY, JSON.stringify(payload)]);
       return response.status(200).json(payload);
     }
