@@ -1037,8 +1037,11 @@ export default function SalesManager({
           </div>
 
           {/* Items Table */}
-          <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-            <table className="w-full text-right text-xs">
+          <div
+            className="w-full max-w-full border border-slate-200 rounded-xl overflow-x-scroll overscroll-x-contain shadow-2xs"
+            style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
+          >
+            <table className="min-w-[900px] w-full text-right text-xs">
               <thead>
                 <tr className="bg-slate-900 text-white font-bold border-b border-slate-200">
                   <th className="py-3 px-4 font-bold text-right">#</th>
@@ -1106,7 +1109,7 @@ export default function SalesManager({
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-left font-mono font-bold text-slate-950">{( (editable ? receiptEditableItems[idx].sellPrice : item.sellPrice) * (editable ? receiptEditableItems[idx].quantity : item.quantity) ).toFixed(2)} ج.م</td>
-                    <td className="sticky left-0 z-10 bg-white py-3.5 px-2 text-center shadow-[-4px_0_8px_rgba(15,23,42,0.08)]">
+                    <td className="bg-white py-3.5 px-2 text-center">
                       {editable && (
                         <button
                           onClick={() => {
