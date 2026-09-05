@@ -56,6 +56,8 @@ export default function SalesManager({
   const [isEditingReceipt, setIsEditingReceipt] = useState(false);
   const [receiptEditableItems, setReceiptEditableItems] = useState<SaleItem[]>([]);
   const [receiptEditLog, setReceiptEditLog] = useState<any[]>([]);
+  const [receiptNewProductId, setReceiptNewProductId] = useState('');
+  const [receiptNewProductQuantity, setReceiptNewProductQuantity] = useState('1');
   // Navigation inside tab: 'pos' or 'history'
   const [salesSubTab, setSalesSubTab] = useState<'pos' | 'history'>('pos');
 
@@ -678,6 +680,8 @@ export default function SalesManager({
                   if (!activeReceipt) return;
                   setReceiptEditableItems(activeReceipt.items.map(it => ({ ...it })));
                   setReceiptEditLog([]);
+                  setReceiptNewProductId('');
+                  setReceiptNewProductQuantity('1');
                   setIsEditingReceipt(true);
                 }}
                 title="تعديل الفاتورة"
@@ -715,6 +719,8 @@ export default function SalesManager({
                     setActiveReceipt(updatedSale);
                     setIsEditingReceipt(false);
                     setReceiptEditLog([]);
+                    setReceiptNewProductId('');
+                    setReceiptNewProductQuantity('1');
                   }}
                   className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-lg transition-colors text-xs"
                 >
@@ -1034,6 +1040,92 @@ export default function SalesManager({
               </tbody>
             </table>
           </div>
+
+          {isEditingReceipt && (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-xl no-print">
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-emerald-900 mb-1.5">إضافة صنف إلى الفاتورة</label>
+                <select
+                  value={receiptNewProductId}
+                  onChange={(event) => setReceiptNewProductId(event.target.value)}
+                  className="w-full bg-white border border-emerald-200 rounded-lg px-3 py-2 text-xs outline-none"
+                >
+                  <option value="">اختر الصنف</option>
+                  {products.map(product => (
+                    <option key={product.id} value={product.id}>
+                      {product.name} - المخزون: {product.stock}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="w-full sm:w-28">
+                <label className="block text-xs font-bold text-emerald-900 mb-1.5">الكمية</label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={receiptNewProductQuantity}
+                  onChange={(event) => setReceiptNewProductQuantity(event.target.value)}
+                  className="w-full bg-white border border-emerald-200 rounded-lg px-3 py-2 text-xs text-center outline-none"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const product = products.find(item => item.id === receiptNewProductId);
+                  const quantity = Math.floor(Number(receiptNewProductQuantity));
+                  if (!product || !Number.isFinite(quantity) || quantity < 1) {
+                    alert('اختر صنفًا وأدخل كمية صحيحة.');
+                    return;
+                  }
+
+                  const existingItem = receiptEditableItems.find(item => item.productId === product.id);
+                  const existingQuantity = existingItem?.quantity || 0;
+                  if (existingQuantity + quantity > product.stock + existingQuantity) {
+                    alert(`الكمية المطلوبة تتجاوز المخزون المتوفر (${product.stock}).`);
+                    return;
+                  }
+
+                  setReceiptEditableItems(previousItems => {
+                    const itemIndex = previousItems.findIndex(item => item.productId === product.id);
+                    if (itemIndex >= 0) {
+                      const nextItems = [...previousItems];
+                      const nextQuantity = nextItems[itemIndex].quantity + quantity;
+                      nextItems[itemIndex] = {
+                        ...nextItems[itemIndex],
+                        quantity: nextQuantity,
+                        total: product.sellPrice * nextQuantity,
+                        profit: (product.sellPrice - product.buyPrice) * nextQuantity
+                      };
+                      return nextItems;
+                    }
+
+                    return [...previousItems, {
+                      productId: product.id,
+                      productName: product.name,
+                      quantity,
+                      buyPrice: product.buyPrice,
+                      sellPrice: product.sellPrice,
+                      total: product.sellPrice * quantity,
+                      profit: (product.sellPrice - product.buyPrice) * quantity
+                    }];
+                  });
+                  setReceiptEditLog(previousLog => [...previousLog, {
+                    action: 'add_item',
+                    productId: product.id,
+                    quantity,
+                    timestamp: new Date().toISOString()
+                  }]);
+                  setReceiptNewProductId('');
+                  setReceiptNewProductQuantity('1');
+                }}
+                className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg transition-colors text-xs"
+              >
+                <Plus size={15} />
+                إضافة الصنف
+              </button>
+            </div>
+          )}
 
           {/* Financial calculations & Signature Blocks */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
