@@ -613,7 +613,7 @@ export default function SalesManager({
     return (
       <div className="space-y-8 animate-fade-in text-right" dir="rtl">
         {/* Navigation & Action Bar on Screen (Hidden on Print) */}
-        <div className="no-print flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+        <div className="no-print receipt-action-bar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
           <div>
             <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <FileText className="text-slate-950" size={24} />
@@ -623,7 +623,7 @@ export default function SalesManager({
               مراجعة شاملة لبيانات الفاتورة والأصناف قبل الطباعة أو التصدير
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="receipt-action-buttons flex flex-wrap items-center gap-2.5">
             {/* 1. Print Button */}
             <button 
               onClick={() => {
@@ -981,7 +981,7 @@ export default function SalesManager({
           </div>
 
           {/* Customer & Merchant Metadata Grid */}
-          <div id="invoice-parties" className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-5 rounded-xl border border-slate-200/80">
+          <div id="invoice-parties" className="invoice-parties grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-5 rounded-xl border border-slate-200/80">
             <div className="space-y-2.5 text-right">
               <h3 className="text-xs font-bold text-indigo-600 uppercase border-b border-indigo-100 pb-1.5">بيانات العميل (الطرف الثاني)</h3>
               <div className="space-y-1.5 text-xs">
@@ -1038,10 +1038,10 @@ export default function SalesManager({
 
           {/* Items Table */}
           <div
-            className="w-full max-w-full border border-slate-200 rounded-xl overflow-x-scroll overscroll-x-contain shadow-2xs"
+            className="invoice-items-scroll w-full max-w-full border border-slate-200 rounded-xl overflow-x-auto overscroll-x-contain shadow-2xs"
             style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
           >
-            <table className="min-w-[900px] w-full text-right text-xs">
+            <table className="invoice-items-table min-w-[900px] w-full text-right text-xs">
               <thead>
                 <tr className="bg-slate-900 text-white font-bold border-b border-slate-200">
                   <th className="py-3 px-4 font-bold text-right">#</th>
@@ -1049,7 +1049,7 @@ export default function SalesManager({
                   <th className="py-3 font-bold text-center">سعر الوحدة</th>
                   <th className="py-3 font-bold text-center">الكمية</th>
                   <th className="py-3 px-4 font-bold text-left">المجموع الإجمالي</th>
-                  <th className="py-3 px-3 font-bold text-center">إجراء</th>
+                  <th className="invoice-action-column py-3 px-3 font-bold text-center">إجراء</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-150">
@@ -1109,7 +1109,7 @@ export default function SalesManager({
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-left font-mono font-bold text-slate-950">{( (editable ? receiptEditableItems[idx].sellPrice : item.sellPrice) * (editable ? receiptEditableItems[idx].quantity : item.quantity) ).toFixed(2)} ج.م</td>
-                    <td className="bg-white py-3.5 px-2 text-center">
+                    <td className="invoice-action-column bg-white py-3.5 px-2 text-center">
                       {editable && (
                         <button
                           onClick={() => {

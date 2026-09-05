@@ -52,6 +52,56 @@ body {
   will-change: opacity;
 }
 
+@media (max-width: 639px) {
+  #sales-tab,
+  #printable-invoice {
+    min-width: 0;
+  }
+
+  .receipt-action-bar {
+    align-items: stretch;
+  }
+
+  .receipt-action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .receipt-action-buttons > button,
+  .receipt-action-buttons > label {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .receipt-action-buttons > label {
+    justify-content: space-between;
+  }
+
+  .invoice-parties > div > div > div,
+  #invoice-parties > div > div > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  #printable-invoice {
+    padding: 1rem;
+  }
+
+  .invoice-items-scroll {
+    scrollbar-width: auto;
+  }
+
+  .invoice-action-column {
+    min-width: 72px;
+  }
+
+  .invoice-items-table th,
+  .invoice-items-table td {
+    white-space: nowrap;
+  }
+}
+
 /* Printed Invoice layout overrides */
 @media print {
   body {
