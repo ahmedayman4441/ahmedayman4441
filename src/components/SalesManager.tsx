@@ -60,6 +60,7 @@ export default function SalesManager({
   const [receiptNewProductQuantity, setReceiptNewProductQuantity] = useState('1');
   const [receiptEditCashDiscount, setReceiptEditCashDiscount] = useState('0');
   const [receiptEditExpiryDiscount, setReceiptEditExpiryDiscount] = useState('0');
+  const [pdfExportScale, setPdfExportScale] = useState('86');
   // Navigation inside tab: 'pos' or 'history'
   const [salesSubTab, setSalesSubTab] = useState<'pos' | 'history'>('pos');
 
@@ -565,7 +566,7 @@ export default function SalesManager({
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 28;
       const availableWidth = pageWidth - (margin * 2);
-      const exportScale = 0.86;
+      const exportScale = Math.max(0.5, Math.min(1, Number(pdfExportScale) / 100));
       const renderedWidth = availableWidth * exportScale;
       const horizontalOffset = margin + ((availableWidth - renderedWidth) / 2);
       const ratio = renderedWidth / canvas.width;
@@ -664,6 +665,24 @@ export default function SalesManager({
                 </>
               )}
             </button>
+
+            <label className="flex items-center gap-2 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-900">
+              <span>حجم PDF</span>
+              <select
+                value={pdfExportScale}
+                onChange={(event) => setPdfExportScale(event.target.value)}
+                disabled={isExportingPDF}
+                className="bg-white border border-indigo-200 rounded-md px-2 py-1 font-mono text-xs outline-none"
+                aria-label="حجم الفاتورة عند تصدير PDF"
+              >
+                <option value="60">60%</option>
+                <option value="70">70%</option>
+                <option value="80">80%</option>
+                <option value="86">86%</option>
+                <option value="90">90%</option>
+                <option value="100">100%</option>
+              </select>
+            </label>
 
             {/* 3. Back Button */}
             <button 
