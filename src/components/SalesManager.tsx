@@ -565,11 +565,14 @@ export default function SalesManager({
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 28;
       const availableWidth = pageWidth - (margin * 2);
-      const ratio = availableWidth / canvas.width;
+      const exportScale = 0.86;
+      const renderedWidth = availableWidth * exportScale;
+      const horizontalOffset = margin + ((availableWidth - renderedWidth) / 2);
+      const ratio = renderedWidth / canvas.width;
       const imgHeight = canvas.height * ratio;
 
       if (imgHeight <= pageHeight - (margin * 2)) {
-        pdf.addImage(imgData, 'PNG', margin, margin, availableWidth, imgHeight, undefined, 'FAST');
+        pdf.addImage(imgData, 'PNG', horizontalOffset, margin, renderedWidth, imgHeight, undefined, 'FAST');
       } else {
         let offsetY = 0;
         let page = 0;
@@ -586,7 +589,7 @@ export default function SalesManager({
           const pageCtx = pageCanvas.getContext('2d');
           if (!pageCtx) throw new Error('Failed to create PDF page canvas');
           pageCtx.drawImage(canvas, 0, offsetY, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
-          pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', margin, margin, availableWidth, pageCanvas.height * ratio, undefined, 'FAST');
+          pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', horizontalOffset, margin, renderedWidth, pageCanvas.height * ratio, undefined, 'FAST');
           offsetY += pageCanvas.height;
           page += 1;
         }
