@@ -558,8 +558,16 @@ export default function SalesManager({
         windowWidth: Math.max(element.scrollWidth, 1100),
         windowHeight: Math.max(element.scrollHeight, 1400)
       });
-      const headerParts = Array.from(element.children).slice(0, 2);
-      const headerPartCanvases = await Promise.all(headerParts.map(part => html2canvas(part as HTMLElement, {
+      const headerClone = element.cloneNode(true) as HTMLElement;
+      Array.from(headerClone.children).slice(2).forEach(child => child.remove());
+      const elementWidth = element.getBoundingClientRect().width;
+      headerClone.style.position = 'fixed';
+      headerClone.style.left = '-100000px';
+      headerClone.style.top = '0';
+      headerClone.style.width = `${elementWidth}px`;
+      headerClone.style.maxWidth = 'none';
+      document.body.appendChild(headerClone);
+      const headerCanvas = await html2canvas(headerClone, {
         scale: 2,
         useCORS: true,
         logging: false,
@@ -567,22 +575,8 @@ export default function SalesManager({
         scrollX: 0,
         scrollY: 0,
         windowWidth: Math.max(element.scrollWidth, 1100)
-      })));
-      const headerCanvas = headerPartCanvases.length === 2
-        ? (() => {
-            const gap = 64;
-            const combined = document.createElement('canvas');
-            combined.width = Math.max(headerPartCanvases[0].width, headerPartCanvases[1].width);
-            combined.height = headerPartCanvases[0].height + gap + headerPartCanvases[1].height;
-            const context = combined.getContext('2d');
-            if (!context) return null;
-            context.fillStyle = '#ffffff';
-            context.fillRect(0, 0, combined.width, combined.height);
-            context.drawImage(headerPartCanvases[0], 0, 0);
-            context.drawImage(headerPartCanvases[1], 0, headerPartCanvases[0].height + gap);
-            return combined;
-          })()
-        : null;
+      });
+      headerClone.remove();
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
