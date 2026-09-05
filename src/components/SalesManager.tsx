@@ -586,14 +586,6 @@ export default function SalesManager({
         windowWidth: Math.max(element.scrollWidth, 1100)
       });
       headerClone.remove();
-      const firstContentElement = element.children[2] as HTMLElement | undefined;
-      const elementRect = element.getBoundingClientRect();
-      const firstContentRect = firstContentElement?.getBoundingClientRect();
-      const canvasScale = canvas.width / Math.max(elementRect.width, 1);
-      const contentStartY = firstContentRect
-        ? Math.max(0, Math.round((firstContentRect.top - elementRect.top) * canvasScale))
-        : 0;
-
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
 
@@ -607,7 +599,7 @@ export default function SalesManager({
       if (imgHeight <= pageHeight - (margin * 2)) {
         pdf.addImage(imgData, 'PNG', margin, margin, availableWidth, imgHeight, undefined, 'FAST');
       } else {
-        let offsetY = contentStartY;
+        let offsetY = 0;
         let page = 0;
         const headerPdfHeight = headerCanvas ? headerCanvas.height * ratio : 0;
         const headerGap = headerCanvas ? 12 : 0;
@@ -621,7 +613,7 @@ export default function SalesManager({
             pdf.addPage();
           }
 
-          if (!headerCanvas) {
+          if (page === 0 || !headerCanvas) {
             const pageCanvas = document.createElement('canvas');
             pageCanvas.width = canvas.width;
             pageCanvas.height = Math.min(
@@ -995,30 +987,30 @@ export default function SalesManager({
           className="bg-white rounded-xl border border-slate-250 shadow-md p-8 max-w-4xl mx-auto space-y-8"
         >
           {/* Invoice Corporate Header */}
-          <div className="overflow-hidden rounded-xl border border-slate-900 bg-white">
-            <div className="flex flex-col sm:flex-row justify-between items-start gap-5 bg-slate-900 px-5 py-4 text-white">
-              <div className="space-y-1.5 text-right">
-                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-300">نقطة البيع والفواتير</p>
-                <h2 className="text-xl font-black leading-tight">{companySettings.companyName}</h2>
-                <p className="text-[11px] font-medium text-slate-300">
-                  {companySettings.commercialRegister && `سجل تجاري رقم: ${companySettings.commercialRegister}`}
-                  {companySettings.commercialRegister && companySettings.taxNumber && ' / '}
-                  {companySettings.taxNumber && `بطاقة ضريبية رقم: ${companySettings.taxNumber}`}
-                </p>
-              </div>
-              <div className="flex min-w-[210px] flex-col gap-1.5 text-right sm:text-left sm:items-end">
-                <span className="inline-flex w-fit rounded-md bg-white px-3 py-1 text-[11px] font-black text-slate-900">فاتورة بيع</span>
-                <p className="text-[11px] text-slate-300">
-                  رقم الفاتورة: <b className="font-mono text-sm text-white">#{activeReceipt.id}</b>
-                </p>
-                <p className="text-[11px] text-slate-300">
-                  التاريخ: <b className="font-mono font-bold text-white">{new Date(activeReceipt.date).toLocaleString('ar-EG', { dateStyle: 'long', timeStyle: 'short' })}</b>
-                </p>
-              </div>
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-6 border-b border-slate-200 pb-6">
+            <div className="space-y-2 text-right">
+              <h2 className="text-xl font-black text-slate-900">{companySettings.companyName}</h2>
+              <p className="text-xs text-slate-500 font-medium">
+                {companySettings.commercialRegister && `سجل تجاري رقم: ${companySettings.commercialRegister}`}
+                {companySettings.commercialRegister && companySettings.taxNumber && ' / '}
+                {companySettings.taxNumber && `بطاقة ضريبية رقم: ${companySettings.taxNumber}`}
+              </p>
+              <p className="text-xs text-slate-500 font-medium">
+                {companySettings.phone && `الهاتف: ${companySettings.phone}`}
+                {companySettings.phone && companySettings.email && ' / '}
+                {companySettings.email && `البريد: ${companySettings.email}`}
+              </p>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-5 py-2.5 text-[11px] font-medium text-slate-600">
-              <span>{companySettings.phone && `الهاتف: ${companySettings.phone}`}</span>
-              <span>{companySettings.email && `البريد: ${companySettings.email}`}</span>
+            <div className="space-y-2 sm:text-left text-right min-w-[200px] sm:self-center">
+              <div className="inline-block bg-slate-900 text-white font-black text-xs px-4 py-1.5 rounded-md uppercase">
+                فاتورة بيع مبسطة
+              </div>
+              <div className="text-xs text-slate-500 font-mono mt-1">
+                رقم الفاتورة: <b className="text-slate-900 font-bold text-sm">#{activeReceipt.id}</b>
+              </div>
+              <div className="text-xs text-slate-500">
+                تاريخ المعاملة: <b className="text-slate-900 font-mono font-medium">{new Date(activeReceipt.date).toLocaleString('ar-EG', { dateStyle: 'long', timeStyle: 'short' })}</b>
+              </div>
             </div>
           </div>
 
