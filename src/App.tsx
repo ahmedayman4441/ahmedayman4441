@@ -1324,7 +1324,7 @@ export default function App() {
 
       {/* Mobile Sticky Navigation Bottom Bar (Responsive view only) */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-sm px-2 py-2 flex items-center justify-start gap-2 overflow-x-auto z-40">
-        <button 
+        <button
           onClick={() => setActiveTab('dashboard')}
           className={`flex flex-col items-center gap-1 p-1 transition-colors ${
             activeTab === 'dashboard' ? 'text-slate-950 font-bold' : 'text-slate-400'
