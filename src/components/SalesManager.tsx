@@ -567,6 +567,11 @@ export default function SalesManager({
       headerClone.style.width = `${elementWidth}px`;
       headerClone.style.maxWidth = 'none';
       document.body.appendChild(headerClone);
+      const partiesGrid = headerClone.querySelector('#invoice-parties') as HTMLElement | null;
+      if (partiesGrid) {
+        partiesGrid.style.display = 'grid';
+        partiesGrid.style.gridTemplateColumns = 'repeat(2, minmax(0, 1fr))';
+      }
       const headerCanvas = await html2canvas(headerClone, {
         scale: 2,
         useCORS: true,
@@ -1005,7 +1010,7 @@ export default function SalesManager({
           </div>
 
           {/* Customer & Merchant Metadata Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-5 rounded-xl border border-slate-200/80">
+          <div id="invoice-parties" className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-5 rounded-xl border border-slate-200/80">
             <div className="space-y-2.5 text-right">
               <h3 className="text-xs font-bold text-indigo-600 uppercase border-b border-indigo-100 pb-1.5">بيانات العميل (الطرف الثاني)</h3>
               <div className="space-y-1.5 text-xs">
