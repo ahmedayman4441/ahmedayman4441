@@ -874,9 +874,63 @@ export default function SalesManager({
             letter-spacing: 0px !important;
             letter-spacing: normal !important;
           }
+
+          #printable-invoice .invoice-unit-price {
+            color: #000000 !important;
+            font-weight: 800 !important;
+          }
+
+          @page {
+            size: A4 portrait;
+            margin: 5mm;
+          }
+
+          @media print {
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+            }
+
+            #printable-invoice {
+              zoom: var(--invoice-print-scale);
+              width: calc(100% / var(--invoice-print-scale)) !important;
+              max-width: none !important;
+              margin: 0 !important;
+              padding: 12px !important;
+              border: 0 !important;
+              box-shadow: none !important;
+              border-radius: 0 !important;
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+
+            #printable-invoice .space-y-8 {
+              row-gap: 10px !important;
+            }
+
+            #printable-invoice .space-y-6 {
+              row-gap: 8px !important;
+            }
+
+            #printable-invoice table {
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+
+            #printable-invoice tr {
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+
+            #printable-invoice .no-print {
+              display: none !important;
+            }
+          }
         `}} />
         <div 
           id="printable-invoice" 
+          style={{ '--invoice-print-scale': String(Math.max(0.42, Math.min(1, 18 / Math.max(activeReceipt.items.length, 1)))) } as React.CSSProperties}
           className="bg-white rounded-xl border border-slate-250 shadow-md p-8 max-w-4xl mx-auto space-y-8"
         >
           {/* Invoice Corporate Header */}
@@ -1002,10 +1056,10 @@ export default function SalesManager({
                             });
                             setReceiptEditLog(prev => [...prev, { productId: item.productId, field: 'sellPrice', oldValue: item.sellPrice, newValue: val, timestamp: new Date().toISOString() }]);
                           }}
-                          className="w-24 text-center bg-slate-50 border border-slate-200 text-xs px-2 py-1 rounded-md outline-none"
+                          className="w-24 text-center bg-slate-50 border border-slate-200 text-black font-bold text-xs px-2 py-1 rounded-md outline-none"
                         />
                       ) : (
-                        `${item.sellPrice.toFixed(2)} ج.م`
+                        <span className="invoice-unit-price">{item.sellPrice.toFixed(2)} ج.م</span>
                       )}
                     </td>
                     <td className="py-3.5 text-center font-mono font-bold text-slate-900">
