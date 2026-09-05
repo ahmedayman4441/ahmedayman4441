@@ -558,25 +558,6 @@ export default function SalesManager({
         windowWidth: Math.max(element.scrollWidth, 1100),
         windowHeight: Math.max(element.scrollHeight, 1400)
       });
-      const headerClone = element.cloneNode(true) as HTMLElement;
-      Array.from(headerClone.children).slice(2).forEach(child => child.remove());
-      const elementWidth = element.getBoundingClientRect().width;
-      headerClone.style.position = 'fixed';
-      headerClone.style.left = '-100000px';
-      headerClone.style.top = '0';
-      headerClone.style.width = `${elementWidth}px`;
-      headerClone.style.maxWidth = 'none';
-      document.body.appendChild(headerClone);
-      const headerCanvas = await html2canvas(headerClone, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: Math.max(element.scrollWidth, 1100)
-      });
-      headerClone.remove();
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
 
@@ -592,50 +573,21 @@ export default function SalesManager({
       } else {
         let offsetY = 0;
         let page = 0;
-        const headerPdfHeight = headerCanvas ? headerCanvas.height * ratio : 0;
-        const headerGap = headerCanvas ? 12 : 0;
-        const repeatedContentCanvasHeight = Math.max(
-          1,
-          Math.floor((pageHeight - (margin * 2) - headerPdfHeight - headerGap) / ratio)
-        );
+        const pageCanvasHeight = Math.max(1, Math.floor((pageHeight - (margin * 2)) / ratio));
 
         while (offsetY < canvas.height) {
           if (page > 0) {
             pdf.addPage();
           }
 
-          if (page === 0 || !headerCanvas) {
-            const pageCanvas = document.createElement('canvas');
-            pageCanvas.width = canvas.width;
-            pageCanvas.height = Math.min(
-              Math.max(1, Math.floor((pageHeight - (margin * 2)) / ratio)),
-              canvas.height - offsetY
-            );
-            const pageCtx = pageCanvas.getContext('2d');
-            if (!pageCtx) throw new Error('Failed to create PDF page canvas');
-            pageCtx.drawImage(canvas, 0, offsetY, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
-            pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', margin, margin, availableWidth, pageCanvas.height * ratio, undefined, 'FAST');
-            offsetY += pageCanvas.height;
-          } else {
-            pdf.addImage(headerCanvas.toDataURL('image/png'), 'PNG', margin, margin, availableWidth, headerPdfHeight, undefined, 'FAST');
-            const pageCanvas = document.createElement('canvas');
-            pageCanvas.width = canvas.width;
-            pageCanvas.height = Math.min(repeatedContentCanvasHeight, canvas.height - offsetY);
-            const pageCtx = pageCanvas.getContext('2d');
-            if (!pageCtx) throw new Error('Failed to create PDF page canvas');
-            pageCtx.drawImage(canvas, 0, offsetY, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
-            pdf.addImage(
-              pageCanvas.toDataURL('image/png'),
-              'PNG',
-              margin,
-              margin + headerPdfHeight + headerGap,
-              availableWidth,
-              pageCanvas.height * ratio,
-              undefined,
-              'FAST'
-            );
-            offsetY += pageCanvas.height;
-          }
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = Math.min(pageCanvasHeight, canvas.height - offsetY);
+          const pageCtx = pageCanvas.getContext('2d');
+          if (!pageCtx) throw new Error('Failed to create PDF page canvas');
+          pageCtx.drawImage(canvas, 0, offsetY, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
+          pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', margin, margin, availableWidth, pageCanvas.height * ratio, undefined, 'FAST');
+          offsetY += pageCanvas.height;
           page += 1;
         }
       }
