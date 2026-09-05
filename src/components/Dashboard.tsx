@@ -33,6 +33,45 @@ export default function Dashboard({ products, sales, onNavigate }: DashboardProp
   const [calcInput, setCalcInput] = useState('');
   const [calcResult, setCalcResult] = useState<string | null>(null);
 
+  const evaluateCalculation = (expression: string): number => {
+    const compactExpression = expression.replace(/\s+/g, '');
+    const tokens = compactExpression.match(/\d*\.?\d+|[()+\-*/]/g) || [];
+    if (tokens.join('') !== compactExpression) throw new Error('Invalid expression');
+
+    const values: number[] = [];
+    const operators: string[] = [];
+    const precedence: Record<string, number> = { '+': 1, '-': 1, '*': 2, '/': 2 };
+    const applyOperator = () => {
+      const operator = operators.pop();
+      const right = values.pop();
+      const left = values.pop();
+      if (!operator || left === undefined || right === undefined) throw new Error('Invalid expression');
+      if (operator === '/' && right === 0) throw new Error('Division by zero');
+      values.push(operator === '+' ? left + right : operator === '-' ? left - right : operator === '*' ? left * right : left / right);
+    };
+
+    tokens.forEach((token, index) => {
+      if (/^\d/.test(token)) {
+        values.push(Number(token));
+      } else if (token === '(') {
+        operators.push(token);
+      } else if (token === ')') {
+        while (operators.at(-1) && operators.at(-1) !== '(') applyOperator();
+        if (operators.pop() !== '(') throw new Error('Invalid expression');
+      } else {
+        if (token === '-' && (index === 0 || tokens[index - 1] === '(' || '+-*/'.includes(tokens[index - 1]))) values.push(0);
+        while (operators.at(-1) && operators.at(-1) !== '(' && precedence[operators.at(-1)] >= precedence[token]) applyOperator();
+        operators.push(token);
+      }
+    });
+    while (operators.length) {
+      if (operators.at(-1) === '(') throw new Error('Invalid expression');
+      applyOperator();
+    }
+    if (values.length !== 1 || !Number.isFinite(values[0])) throw new Error('Invalid expression');
+    return values[0];
+  };
+
   // Calculate metrics
   const totalSales = sales.reduce((sum, s) => sum + s.totalAmount, 0);
   const totalProfit = sales.reduce((sum, s) => sum + s.totalProfit, 0);
@@ -85,10 +124,7 @@ export default function Dashboard({ products, sales, onNavigate }: DashboardProp
       setCalcResult(null);
     } else if (val === '=') {
       try {
-        // Safe evaluation of basic expressions
-        const sanitized = calcInput.replace(/[^-+*/().0-9]/g, '');
-        // eslint-disable-next-line no-eval
-        const res = eval(sanitized);
+        const res = evaluateCalculation(calcInput);
         setCalcResult(Number(res).toFixed(2));
       } catch {
         setCalcResult('خطأ');
