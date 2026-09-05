@@ -418,6 +418,28 @@ export default function App() {
     localStorage.setItem('sales_app_backups', JSON.stringify(updatedBackups));
   };
 
+  const exportCurrentBackup = () => {
+    const currentBackup: Backup = {
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      products: [...products],
+      sales: [...sales],
+      customers: [...customers],
+      refunds: [...refunds],
+      companySettings: { ...companySettings },
+      description: 'نسخة من الحالة الحالية'
+    };
+    const data = JSON.stringify(currentBackup, null, 2);
+    const url = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `backup-current-${currentBackup.id}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   // Restore from backup
   const restoreBackup = (backup: Backup) => {
     markLocalChange();
@@ -426,27 +448,10 @@ export default function App() {
     setProducts(backup.products);
     localStorage.setItem('sales_app_products', JSON.stringify(backup.products));
 
-    // Sales: respect per-sale locks (sales created/edited via UI should not be overwritten)
+    // Restore the complete invoice list from the backup.
     try {
-      const lockedSales = new Set<string>();
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i) as string;
-        if (k && k.startsWith('sale_locked_')) {
-          lockedSales.add(k.replace('sale_locked_', ''));
-        }
-      }
-
-      const merged: Sale[] = [...sales];
-      backup.sales.forEach(bsale => {
-        if (lockedSales.has(bsale.id)) {
-          return; // keep local UI-modified sale
-        }
-        const idx = merged.findIndex(s => s.id === bsale.id);
-        if (idx >= 0) merged[idx] = bsale; else merged.push(bsale);
-      });
-
-      setSales(merged);
-      localStorage.setItem('sales_app_sales', JSON.stringify(merged));
+      setSales(backup.sales);
+      localStorage.setItem('sales_app_sales', JSON.stringify(backup.sales));
     } catch (e) {
       console.warn('Failed to merge sales during backup restore', e);
       setSales(backup.sales);
@@ -1294,6 +1299,7 @@ export default function App() {
                   <BackupManager 
                     backups={backups}
                     onCreateBackup={() => createBackup('نسخة احتياطية يدوية من المدير')}
+                    onExportCurrentBackup={exportCurrentBackup}
                     onRestore={restoreBackup}
                     onDelete={deleteBackup}
                     onNavigate={setActiveTab}

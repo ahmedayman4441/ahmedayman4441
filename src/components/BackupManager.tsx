@@ -17,6 +17,7 @@ interface Backup {
 interface BackupManagerProps {
   backups: Backup[];
   onCreateBackup: () => void;
+  onExportCurrentBackup: () => void;
   onRestore: (backup: Backup) => void;
   onDelete: (backupId: string) => void;
   onNavigate: (tab: string) => void;
@@ -25,6 +26,7 @@ interface BackupManagerProps {
 const BackupManager: React.FC<BackupManagerProps> = ({
   backups,
   onCreateBackup,
+  onExportCurrentBackup,
   onRestore,
   onDelete,
   onNavigate
@@ -106,11 +108,7 @@ const BackupManager: React.FC<BackupManagerProps> = ({
             إنشاء نسخة احتياطية
           </button>
           <button
-            onClick={() => {
-              if (backups[0]) {
-                handleDownloadBackup(backups[0]);
-              }
-            }}
+            onClick={onExportCurrentBackup}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors"
           >
             <Download size={16} />
