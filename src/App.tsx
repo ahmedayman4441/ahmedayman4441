@@ -1323,7 +1323,7 @@ export default function App() {
       </div>
 
       {/* Mobile Sticky Navigation Bottom Bar (Responsive view only) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-sm px-4 py-2 flex items-center justify-around z-40">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-sm px-2 py-2 flex items-center justify-start gap-2 overflow-x-auto z-40">
         <button 
           onClick={() => setActiveTab('dashboard')}
           className={`flex flex-col items-center gap-1 p-1 transition-colors ${
@@ -1365,6 +1365,16 @@ export default function App() {
         >
           <ShoppingCart size={18} />
           <span className="text-[10px]">المبيعات</span>
+        </button>
+
+        <button 
+          onClick={() => setActiveTab('expired-return')}
+          className={`flex min-w-[64px] flex-col items-center gap-1 p-1 transition-colors whitespace-nowrap ${
+            activeTab === 'expired-return' ? 'text-rose-700 font-bold' : 'text-slate-400'
+          }`}
+        >
+          <Undo2 size={18} />
+          <span className="text-[10px]">إكسباير مرتجع</span>
         </button>
 
         <button 
