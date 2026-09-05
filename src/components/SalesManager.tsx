@@ -558,17 +558,30 @@ export default function SalesManager({
         windowWidth: Math.max(element.scrollWidth, 1100),
         windowHeight: Math.max(element.scrollHeight, 1400)
       });
-      const headerElement = document.getElementById('invoice-header');
-      const headerCanvas = headerElement
-        ? await html2canvas(headerElement, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff',
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: Math.max(element.scrollWidth, 1100)
-          })
+      const headerParts = Array.from(element.children).slice(0, 2);
+      const headerPartCanvases = await Promise.all(headerParts.map(part => html2canvas(part as HTMLElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: Math.max(element.scrollWidth, 1100)
+      })));
+      const headerCanvas = headerPartCanvases.length === 2
+        ? (() => {
+            const gap = 64;
+            const combined = document.createElement('canvas');
+            combined.width = Math.max(headerPartCanvases[0].width, headerPartCanvases[1].width);
+            combined.height = headerPartCanvases[0].height + gap + headerPartCanvases[1].height;
+            const context = combined.getContext('2d');
+            if (!context) return null;
+            context.fillStyle = '#ffffff';
+            context.fillRect(0, 0, combined.width, combined.height);
+            context.drawImage(headerPartCanvases[0], 0, 0);
+            context.drawImage(headerPartCanvases[1], 0, headerPartCanvases[0].height + gap);
+            return combined;
+          })()
         : null;
 
       const imgData = canvas.toDataURL('image/png');
@@ -969,7 +982,6 @@ export default function SalesManager({
           style={{ '--invoice-print-scale': String(Math.max(0.42, Math.min(1, 18 / Math.max(activeReceipt.items.length, 1)))) } as React.CSSProperties}
           className="bg-white rounded-xl border border-slate-250 shadow-md p-8 max-w-4xl mx-auto space-y-8"
         >
-          <div id="invoice-header" className="space-y-8">
           {/* Invoice Corporate Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-6 border-b border-slate-200 pb-6">
             <div className="space-y-2 text-right">
@@ -1052,7 +1064,6 @@ export default function SalesManager({
                 </div>
               </div>
             </div>
-          </div>
           </div>
 
           {/* Items Table */}
