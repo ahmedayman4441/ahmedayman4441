@@ -17,7 +17,8 @@ import {
   Copy,
   Check,
   X as XIcon,
-  Download
+  Download,
+  Trash2
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -1045,6 +1046,7 @@ export default function SalesManager({
                   <th className="py-3 font-bold text-center">سعر الوحدة</th>
                   <th className="py-3 font-bold text-center">الكمية</th>
                   <th className="py-3 px-4 font-bold text-left">المجموع الإجمالي</th>
+                  <th className="py-3 px-3 font-bold text-center">إجراء</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-150">
@@ -1104,7 +1106,7 @@ export default function SalesManager({
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-left font-mono font-bold text-slate-950">{( (editable ? receiptEditableItems[idx].sellPrice : item.sellPrice) * (editable ? receiptEditableItems[idx].quantity : item.quantity) ).toFixed(2)} ج.م</td>
-                    <td className="py-3.5 text-center">
+                    <td className="sticky left-0 z-10 bg-white py-3.5 px-2 text-center shadow-[-4px_0_8px_rgba(15,23,42,0.08)]">
                       {editable && (
                         <button
                           onClick={() => {
@@ -1114,9 +1116,10 @@ export default function SalesManager({
                             setReceiptEditLog(prev => [...prev, { action: 'delete_item', productId: removed.productId, oldValue: removed, timestamp: new Date().toISOString() }]);
                           }}
                           title="حذف الصنف من الفاتورة"
-                          className="p-1.5 text-rose-700 bg-rose-50 border border-rose-100 hover:bg-rose-100 rounded-md transition-colors text-xs"
+                          aria-label="حذف الصنف من الفاتورة"
+                          className="inline-flex h-8 w-8 items-center justify-center text-rose-700 bg-rose-50 border border-rose-100 hover:bg-rose-100 rounded-md transition-colors"
                         >
-                          حذف
+                          <Trash2 size={15} />
                         </button>
                       )}
                     </td>
