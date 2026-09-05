@@ -558,6 +558,18 @@ export default function SalesManager({
         windowWidth: Math.max(element.scrollWidth, 1100),
         windowHeight: Math.max(element.scrollHeight, 1400)
       });
+      const headerElement = document.getElementById('invoice-header');
+      const headerCanvas = headerElement
+        ? await html2canvas(headerElement, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: Math.max(element.scrollWidth, 1100)
+          })
+        : null;
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
@@ -575,23 +587,47 @@ export default function SalesManager({
         let offsetY = 0;
         let page = 0;
         const pageCanvasHeight = Math.max(1, Math.floor((pageHeight - (margin * 2)) / ratio));
+        const headerPdfHeight = headerCanvas ? headerCanvas.height * ratio : 0;
+        const headerGap = headerCanvas ? 12 : 0;
+        const repeatedContentCanvasHeight = Math.max(
+          1,
+          Math.floor((pageHeight - (margin * 2) - headerPdfHeight - headerGap) / ratio)
+        );
 
         while (offsetY < canvas.height) {
-          const pageCanvas = document.createElement('canvas');
-          pageCanvas.width = canvas.width;
-          pageCanvas.height = Math.min(pageCanvasHeight, canvas.height - offsetY);
-          const pageCtx = pageCanvas.getContext('2d');
-          if (!pageCtx) {
-            throw new Error('Failed to create PDF page canvas');
-          }
-          pageCtx.drawImage(canvas, 0, offsetY, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
-
-          const pageImgData = pageCanvas.toDataURL('image/png');
           if (page > 0) {
             pdf.addPage();
           }
-          pdf.addImage(pageImgData, 'PNG', margin, margin, availableWidth, pageCanvas.height * ratio, undefined, 'FAST');
-          offsetY += pageCanvas.height;
+
+          if (page === 0 || !headerCanvas) {
+            const pageCanvas = document.createElement('canvas');
+            pageCanvas.width = canvas.width;
+            pageCanvas.height = Math.min(pageCanvasHeight, canvas.height - offsetY);
+            const pageCtx = pageCanvas.getContext('2d');
+            if (!pageCtx) throw new Error('Failed to create PDF page canvas');
+            pageCtx.drawImage(canvas, 0, offsetY, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
+            pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', margin, margin, availableWidth, pageCanvas.height * ratio, undefined, 'FAST');
+            offsetY += pageCanvas.height;
+          } else {
+            pdf.addImage(headerCanvas.toDataURL('image/png'), 'PNG', margin, margin, availableWidth, headerPdfHeight, undefined, 'FAST');
+            const pageCanvas = document.createElement('canvas');
+            pageCanvas.width = canvas.width;
+            pageCanvas.height = Math.min(repeatedContentCanvasHeight, canvas.height - offsetY);
+            const pageCtx = pageCanvas.getContext('2d');
+            if (!pageCtx) throw new Error('Failed to create PDF page canvas');
+            pageCtx.drawImage(canvas, 0, offsetY, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
+            pdf.addImage(
+              pageCanvas.toDataURL('image/png'),
+              'PNG',
+              margin,
+              margin + headerPdfHeight + headerGap,
+              availableWidth,
+              pageCanvas.height * ratio,
+              undefined,
+              'FAST'
+            );
+            offsetY += pageCanvas.height;
+          }
           page += 1;
         }
       }
@@ -933,6 +969,7 @@ export default function SalesManager({
           style={{ '--invoice-print-scale': String(Math.max(0.42, Math.min(1, 18 / Math.max(activeReceipt.items.length, 1)))) } as React.CSSProperties}
           className="bg-white rounded-xl border border-slate-250 shadow-md p-8 max-w-4xl mx-auto space-y-8"
         >
+          <div id="invoice-header" className="space-y-8">
           {/* Invoice Corporate Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-6 border-b border-slate-200 pb-6">
             <div className="space-y-2 text-right">
@@ -1015,6 +1052,7 @@ export default function SalesManager({
                 </div>
               </div>
             </div>
+          </div>
           </div>
 
           {/* Items Table */}
