@@ -566,11 +566,14 @@ export default function SalesManager({
       headerClone.style.top = '0';
       headerClone.style.width = `${elementWidth}px`;
       headerClone.style.maxWidth = 'none';
+      headerClone.style.display = 'block';
       document.body.appendChild(headerClone);
       const partiesGrid = headerClone.querySelector('#invoice-parties') as HTMLElement | null;
       if (partiesGrid) {
         partiesGrid.style.display = 'grid';
         partiesGrid.style.gridTemplateColumns = 'repeat(2, minmax(0, 1fr))';
+        partiesGrid.style.width = '100%';
+        partiesGrid.style.direction = 'rtl';
       }
       const headerCanvas = await html2canvas(headerClone, {
         scale: 2,
