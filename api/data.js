@@ -50,6 +50,13 @@ export default async function handler(request, response) {
 
       const requestBody = typeof request.body === 'string' ? JSON.parse(request.body) : request.body;
       const payload = { ...requestBody, updatedAt: new Date().toISOString() };
+      const currentStored = await redisCommand(['get', DATA_KEY]);
+      if (currentStored) {
+        const currentPayload = JSON.parse(currentStored);
+        if (currentPayload.updatedAt && currentPayload.updatedAt > payload.updatedAt) {
+          return response.status(200).json(currentPayload);
+        }
+      }
       await redisCommand(['set', DATA_KEY, JSON.stringify(payload)]);
       return response.status(200).json(payload);
     }

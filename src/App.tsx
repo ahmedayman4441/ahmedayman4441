@@ -226,6 +226,7 @@ export default function App() {
   const lastLocalChangeRef = useRef<string | null>(null);
   const lastAppliedServerUpdateRef = useRef<string | null>(null);
   const hasPendingLocalSyncRef = useRef(false);
+  const syncQueueRef = useRef(Promise.resolve());
 
   const applySharedPayload = (remoteData: Partial<SharedAppPayload> | null) => {
     if (!remoteData) return false;
@@ -338,7 +339,9 @@ export default function App() {
       }
     };
 
-    void syncToServer();
+    syncQueueRef.current = syncQueueRef.current
+      .then(syncToServer)
+      .catch(error => console.warn('Queued data sync failed', error));
   }, [hasLoadedSharedState, products, sales, customers, refunds, companySettings, backups]);
 
   useEffect(() => {
