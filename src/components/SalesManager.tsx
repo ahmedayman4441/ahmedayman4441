@@ -58,6 +58,8 @@ export default function SalesManager({
   const [receiptEditLog, setReceiptEditLog] = useState<any[]>([]);
   const [receiptNewProductId, setReceiptNewProductId] = useState('');
   const [receiptNewProductQuantity, setReceiptNewProductQuantity] = useState('1');
+  const [receiptEditCashDiscount, setReceiptEditCashDiscount] = useState('0');
+  const [receiptEditExpiryDiscount, setReceiptEditExpiryDiscount] = useState('0');
   // Navigation inside tab: 'pos' or 'history'
   const [salesSubTab, setSalesSubTab] = useState<'pos' | 'history'>('pos');
 
@@ -682,6 +684,8 @@ export default function SalesManager({
                   setReceiptEditLog([]);
                   setReceiptNewProductId('');
                   setReceiptNewProductQuantity('1');
+                  setReceiptEditCashDiscount(String(activeReceipt.discountAmount || 0));
+                  setReceiptEditExpiryDiscount(String(activeReceipt.expiryDiscount || 0));
                   setIsEditingReceipt(true);
                 }}
                 title="تعديل الفاتورة"
@@ -697,13 +701,18 @@ export default function SalesManager({
                     // Save changes
                     if (!activeReceipt) return;
                     const updatedItems = receiptEditableItems.map(it => ({ ...it }));
-                    const newTotal = updatedItems.reduce((acc, it) => acc + (it.sellPrice * it.quantity), 0);
-                    const newProfit = updatedItems.reduce((acc, it) => acc + ((it.sellPrice - it.buyPrice) * it.quantity), 0);
+                    const totalItems = updatedItems.reduce((acc, it) => acc + (it.sellPrice * it.quantity), 0);
+                    const cashDiscount = Math.max(0, Number(receiptEditCashDiscount) || 0);
+                    const expiryDiscount = Math.max(0, Number(receiptEditExpiryDiscount) || 0);
+                    const newTotal = Math.max(0, totalItems - cashDiscount - expiryDiscount);
+                    const newProfit = updatedItems.reduce((acc, it) => acc + ((it.sellPrice - it.buyPrice) * it.quantity), 0) - cashDiscount - expiryDiscount;
                     const updatedSale: Sale = {
                       ...activeReceipt,
                       items: updatedItems,
                       totalAmount: newTotal,
                       totalProfit: newProfit,
+                      discountAmount: cashDiscount,
+                      expiryDiscount,
                       paidAmount: activeReceipt.paidAmount,
                       remainingAmount: Math.max(0, newTotal - activeReceipt.paidAmount)
                     };
@@ -721,6 +730,8 @@ export default function SalesManager({
                     setReceiptEditLog([]);
                     setReceiptNewProductId('');
                     setReceiptNewProductQuantity('1');
+                    setReceiptEditCashDiscount('0');
+                    setReceiptEditExpiryDiscount('0');
                   }}
                   className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-lg transition-colors text-xs"
                 >
@@ -747,6 +758,8 @@ export default function SalesManager({
                     setIsEditingReceipt(false);
                     setReceiptEditableItems([]);
                     setReceiptEditLog([]);
+                    setReceiptEditCashDiscount('0');
+                    setReceiptEditExpiryDiscount('0');
                   }}
                   className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold px-4 py-2.5 rounded-lg transition-all text-xs"
                 >
@@ -1152,6 +1165,33 @@ export default function SalesManager({
                   {activeReceipt.items.reduce((acc, item) => acc + (item.sellPrice * item.quantity), 0).toFixed(2)} ج.م
                 </span>
               </div>
+
+              {isEditingReceipt && (
+                <div className="space-y-3 border-b border-slate-200 pb-3 no-print">
+                  <label className="flex items-center justify-between gap-3">
+                    <span className="font-semibold text-rose-700">خصم نقدي:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={receiptEditCashDiscount}
+                      onChange={(event) => setReceiptEditCashDiscount(event.target.value)}
+                      className="w-28 bg-white border border-rose-200 rounded-md px-2 py-1 text-center font-mono outline-none"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-3">
+                    <span className="font-semibold text-amber-700">خصم الإكسباير:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={receiptEditExpiryDiscount}
+                      onChange={(event) => setReceiptEditExpiryDiscount(event.target.value)}
+                      className="w-28 bg-white border border-amber-200 rounded-md px-2 py-1 text-center font-mono outline-none"
+                    />
+                  </label>
+                </div>
+              )}
               
               {/* Calculate discount if any */}
               {(() => {
